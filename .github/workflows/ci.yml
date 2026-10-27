@@ -17,4 +17,4 @@ jobs:
       - name: Check formatting
         run: fish_indent --check conf.d/*.fish functions/*.fish tests/*.fish
       - name: Run tests
-        run: fish tests/glance.fish
+        run: fish --no-config tests/glance.fish

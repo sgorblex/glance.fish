@@ -12,7 +12,7 @@ Fish plugin (Fisher layout): pressing Enter on an empty prompt prints and runs a
 - `functions/_glance_enter.fish`: the Enter handler. Decides between running glance and `commandline -f execute`.
 - `functions/_glance_run.fish`: builds the command list from the config variables, prints and `eval`s each one. Returns 1 when there is nothing to run, so the handler falls back to a normal Enter.
 - `tests/glance.fish`: self-contained tests for `_glance_run` (no test framework).
-- `.github/workflows/ci.yml`: `fish_indent --check` + tests on fish 4 (Ubuntu, `ppa:fish-shell/release-4`). Not run yet.
+- `.github/workflows/ci.yml`: `fish_indent --check` + tests on fish 4 (Ubuntu, `ppa:fish-shell/release-4`).
 
 ## Conventions
 
@@ -25,7 +25,9 @@ Fish plugin (Fisher layout): pressing Enter on an empty prompt prints and runs a
 ## Behaviour that must not regress
 
 - "Empty" means the whole buffer (`commandline`), not the current job (`commandline -j`). Otherwise `sleep 1 &`, `foo; ` or a blank line inside an unfinished `if` block wrongly trigger glance.
-- Git detection checks that `git rev-parse --is-inside-work-tree` *prints* `true`; inside `.git` it succeeds but prints `false`.
+- Git detection checks that `git rev-parse --is-inside-work-tree` *prints* `true`; inside `.git` it succeeds but prints `false`. The same call (`--verify -q HEAD`) tells whether there is a commit: the default `git log` is dropped in a repo with no commits. An empty `glance_git_commands` skips git entirely.
+- Blank command strings are skipped; empty `glance_color_*` means no colour (bare `set_color` is an error).
+- Uninstall erases an `enter` binding only if it still runs `_glance_enter`.
 - With the completion pager open, Enter must accept the selection (`commandline --paging-mode` check).
 - In vi normal mode, Enter switches back to insert mode, like fish's preset binding. Vi mode is detected by the presence of a preset `insert`-mode `enter` binding (absent with emacs bindings).
 - Commands are printed with `printf '%s\n'`, never as a format string.
@@ -33,8 +35,8 @@ Fish plugin (Fisher layout): pressing Enter on an empty prompt prints and runs a
 
 ## Testing
 
-- Unit: `fish tests/glance.fish`, and `fish_indent --check conf.d/*.fish functions/*.fish tests/*.fish` (`fish_indent -w <files>` fixes formatting).
-- The test script has no per-test selection: cases run in order and share global state (later cases set `glance_commands`/`glance_prefix` and never reset them), so add new cases where that state is what you want, or reset the variables. Output is compared with ANSI colour codes stripped (`glance_output`).
+- Unit: `fish --no-config tests/glance.fish` (without `--no-config` your own `glance_*` settings leak in), and `fish_indent --check conf.d/*.fish functions/*.fish tests/*.fish` (`fish_indent -w <files>` fixes formatting).
+- The test script has no per-test selection: cases run in order and share global state (`cd` and `glance_*` variables), and each group ends with `reset_config`. Output is compared with ANSI colour codes stripped (`glance_output`).
 - Interactive behaviour (bindings, modes, pager) can't be unit tested. Test it in a throwaway tmux session with an isolated config so the user's real shell and history are untouched:
   - `XDG_CONFIG_HOME=<tmp>/cfg XDG_DATA_HOME=<tmp>/data fish`, with the plugin's `conf.d/` and `functions/` copied into `<tmp>/cfg/fish/`.
   - Drive it with `tmux send-keys -l` (literal; tmux otherwise treats `;` as a separator) and read it with `tmux capture-pane -p`.
