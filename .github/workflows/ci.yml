@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install fish 4
+        run: |
+          sudo add-apt-repository -y ppa:fish-shell/release-4
+          sudo apt-get install -y fish
+          fish --version
+      - name: Check formatting
+        run: fish_indent --check conf.d/*.fish functions/*.fish tests/*.fish
+      - name: Run tests
+        run: fish tests/glance.fish
