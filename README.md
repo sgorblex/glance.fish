@@ -46,7 +46,9 @@ set -g glance_git_commands "git log --oneline --graph -5" "git status"
 set -g glance_commands "ls -lh | head"
 ```
 
-Setting a list to nothing disables it; if there is nothing to run, <kbd>Enter</kbd> behaves normally.
+Setting a list to nothing disables it, and blank commands are skipped; if there is nothing to run, <kbd>Enter</kbd> behaves normally.
+Setting a color to nothing prints that part without color.
+In a repository with no commits yet, the default `git log` is left out.
 
 The first command is printed right after your prompt, as if you had typed it, so the prefix is only used from the second command on.
 
